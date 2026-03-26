@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SHOP EASY – Product</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <a class="logo" href="index.html">
+        <span class="logo-icon"><i class="fa-solid fa-bag-shopping"></i></span>
+        <span class="logo-text">SHOP<em>EASY</em></span>
+      </a>
+      <div class="search-wrap" style="visibility:hidden;pointer-events:none;">
+        <input type="text" class="search-input" placeholder=""/>
+        <button class="search-btn"></button>
+      </div>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <div class="nav-auth" id="navAuth"></div>
+        <a href="cart.html" class="nav-link cart-nav-btn" aria-label="Cart">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span class="cart-badge" id="cartCount">0</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== PRODUCT DETAIL ===== -->
+  <main class="container product-detail-page">
+
+    <!-- Breadcrumb — text filled by renderProductPage() -->
+    <nav class="breadcrumb">
+      <a href="index.html">Home</a>
+      <i class="fa-solid fa-chevron-right"></i>
+      <span id="breadcrumbCat">Category</span>
+      <i class="fa-solid fa-chevron-right"></i>
+      <span id="breadcrumbName">Product</span>
+    </nav>
+
+    <div class="toast" id="toast">
+      <i class="fa-solid fa-circle-check"></i>
+      <span id="toastMsg">Added to cart!</span>
+    </div>
+
+    <!--
+      productDetail is filled by renderProductPage() in script.js.
+      It reads ?id= from URL and calls GET /api/products/:id
+    -->
+    <div class="product-detail-panel" id="productDetail">
+      <div class="detail-loading" style="grid-column:1/-1;text-align:center;padding:60px;">
+        <i class="fa-solid fa-spinner fa-spin" style="color:var(--clr-primary);margin-right:8px;"></i>
+        Loading product…
+      </div>
+    </div>
+
+    <!-- Related products in same category -->
+    <div class="related-section">
+      <h2 class="section-title">You May Also Like</h2>
+      <div class="product-grid" id="relatedGrid"></div>
+    </div>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <span class="logo-text" style="font-size:1.3rem">SHOP<em>EASY</em></span>
+        <p>Smart shopping, real backend.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Pages</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="cart.html">Cart</a></li>
+          <li><a href="orders.html">My Orders</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 ShopEasy. Made with <i class="fa-solid fa-heart"></i></p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    /* ── product.html page init ── */
+
+    // 1. Navbar auth state
+    renderNavAuth();
+
+    // 2. Sync cart badge
+    fetchCart().then(() => updateCartBadge());
+
+    // 3. Fetch product from API using ?id= URL param, then render full detail
+    renderProductPage();
+  </script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SHOP EASY – Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <a class="logo" href="index.html">
+        <span class="logo-icon"><i class="fa-solid fa-bag-shopping"></i></span>
+        <span class="logo-text">SHOP<em>EASY</em></span>
+      </a>
+
+      <!-- Live search — triggers debounced API call -->
+      <div class="search-wrap">
+        <input type="text" class="search-input" id="searchInput"
+          placeholder="Search products…" aria-label="Search"/>
+        <button class="search-btn" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </div>
+
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link active">Home</a>
+        <!-- navAuth filled by renderNavAuth() in script.js -->
+        <div class="nav-auth" id="navAuth"></div>
+        <a href="cart.html" class="nav-link cart-nav-btn" aria-label="Cart">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span class="cart-badge" id="cartCount">0</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-content">
+      <p class="hero-tag">🚀 Phase 5 – Now powered by Node.js + MongoDB!</p>
+      <h1 class="hero-title">Discover.<br/>Click. Own It.</h1>
+      <p class="hero-sub">Real backend, real database, real experience — all in the browser.</p>
+      <a href="#products" class="hero-cta">Shop Now <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="hero-graphic">
+      <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&q=80" alt="Shopping"/>
+    </div>
+  </section>
+
+  <!-- ===== CATEGORY PILLS ===== -->
+  <section class="categories">
+    <div class="container">
+      <button class="pill active" data-cat="All">All</button>
+      <button class="pill" data-cat="Electronics">Electronics</button>
+      <button class="pill" data-cat="Fashion">Fashion</button>
+      <button class="pill" data-cat="Home & Kitchen">Home &amp; Kitchen</button>
+      <button class="pill" data-cat="Sports">Sports</button>
+      <button class="pill" data-cat="Beauty">Beauty</button>
+    </div>
+  </section>
+
+  <!-- ===== PRODUCTS ===== -->
+  <main class="container" id="products">
+    <div class="section-header">
+      <h2 class="section-title">Featured Products</h2>
+      <p class="section-sub" id="resultCount"></p>
+    </div>
+
+    <div class="toast" id="toast">
+      <i class="fa-solid fa-circle-check"></i>
+      <span id="toastMsg">Added to cart!</span>
+    </div>
+
+    <!-- Grid filled by renderProducts() — shows spinner until API responds -->
+    <div class="product-grid" id="productGrid">
+      <div class="loading-state" style="grid-column:1/-1">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Loading products from server…</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <span class="logo-text" style="font-size:1.3rem">SHOP<em>EASY</em></span>
+        <p>Smart shopping, real backend.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Pages</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="cart.html">Cart</a></li>
+          <li><a href="orders.html">My Orders</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Account</h4>
+        <ul>
+          <li><a href="login.html">Login</a></li>
+          <li><a href="register.html">Register</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 ShopEasy &mdash; Phase 5. Made with <i class="fa-solid fa-heart"></i></p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    /* ── index.html page init ── */
+
+    // 1. Render navbar auth state (uses cached user — no API call)
+    renderNavAuth();
+
+    // 2. Sync cart badge with server
+    fetchCart().then(() => updateCartBadge());
+
+    // 3. Load all products from MongoDB via GET /api/products
+    renderProducts();
+
+    // 4. Category pill filter — calls GET /api/products?category=X
+    document.querySelectorAll(".pill").forEach(pill => {
+      pill.addEventListener("click", function () {
+        document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+        this.classList.add("active");
+        renderProducts(this.dataset.cat);
+      });
+    });
+
+    // 5. Debounced live search — calls GET /api/products?search=X
+    let _searchTimer;
+    document.getElementById("searchInput").addEventListener("input", function () {
+      clearTimeout(_searchTimer);
+      const q = this.value.trim();
+      document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+      document.querySelector("[data-cat='All']").classList.add("active");
+      // Wait 400ms after user stops typing before calling the API
+      _searchTimer = setTimeout(() => renderProducts("", q), 400);
+    });
+  </script>
+</body>
+</html>
