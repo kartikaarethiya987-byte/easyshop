@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SHOP EASY – Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <a class="logo" href="index.html">
+        <span class="logo-icon"><i class="fa-solid fa-bag-shopping"></i></span>
+        <span class="logo-text">SHOP<em>EASY</em></span>
+      </a>
+      <div class="search-wrap">
+        <input type="text" class="search-input" id="searchInput"
+          placeholder="Search products…" aria-label="Search"/>
+        <button class="search-btn" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </div>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link active">Home</a>
+        <!-- Filled by renderNavAuth() — shows login/register OR user dropdown -->
+        <div class="nav-auth" id="navAuth"></div>
+        <a href="cart.html" class="nav-link cart-nav-btn" aria-label="Cart">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span class="cart-badge" id="cartCount">0</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-content">
+      <p class="hero-tag">🚀 Phase 6 – Admin Panel, Stock Control &amp; localStorage!</p>
+      <h1 class="hero-title">Discover.<br/>Click. Own It.</h1>
+      <p class="hero-sub">
+        Register or log in to shop. Admins can manage products from the Admin Panel.
+      </p>
+      <a href="#products" class="hero-cta">Shop Now <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="hero-graphic">
+      <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&q=80"
+           alt="Shopping bags"/>
+    </div>
+  </section>
+
+  <!-- ===== CATEGORY PILLS ===== -->
+  <section class="categories">
+    <div class="container">
+      <button class="pill active" data-cat="All">All</button>
+      <button class="pill" data-cat="Electronics">Electronics</button>
+      <button class="pill" data-cat="Fashion">Fashion</button>
+      <button class="pill" data-cat="Home & Kitchen">Home &amp; Kitchen</button>
+      <button class="pill" data-cat="Sports">Sports</button>
+      <button class="pill" data-cat="Beauty">Beauty</button>
+    </div>
+  </section>
+
+  <!-- ===== PRODUCTS ===== -->
+  <main class="container" id="products">
+    <div class="section-header">
+      <h2 class="section-title">Featured Products</h2>
+      <p class="section-sub" id="resultCount"></p>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast">
+      <i class="fa-solid fa-circle-check"></i>
+      <span id="toastMsg">Added to cart!</span>
+    </div>
+
+    <!-- Product cards rendered by renderProducts() from localStorage -->
+    <div class="product-grid" id="productGrid"></div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <span class="logo-text" style="font-size:1.3rem">SHOP<em>EASY</em></span>
+        <p>Smart shopping, simplified.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Pages</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="cart.html">Cart</a></li>
+          <li><a href="orders.html">My Orders</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Account</h4>
+        <ul>
+          <li><a href="login.html">Login</a></li>
+          <li><a href="register.html">Register</a></li>
+          <li><a href="admin.html">Admin Panel</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 ShopEasy &mdash; Phase 6. Made with <i class="fa-solid fa-heart"></i></p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    /* ── index.html init ── */
+
+    // 1. Seed admin + default products if first run
+    seedDefaultData();
+
+    // 2. Handle post-login redirects & access-denied toasts
+    handleRedirectAfterLogin();
+
+    // 3. Render navbar (login state from localStorage)
+    renderNavAuth();
+
+    // 4. Sync cart badge
+    updateCartBadge();
+
+    // 5. Render product grid from localStorage
+    renderProducts();
+
+    // 6. Category filter pills
+    document.querySelectorAll(".pill").forEach(pill => {
+      pill.addEventListener("click", function () {
+        document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+        this.classList.add("active");
+        const cat  = this.dataset.cat;
+        const list = getAllProducts();
+        renderFilteredProducts(cat === "All" ? list : list.filter(p => p.category === cat));
+      });
+    });
+
+    // 7. Live search with history tracking
+    let _st;
+    document.getElementById("searchInput").addEventListener("input", function () {
+      clearTimeout(_st);
+      const q = this.value.toLowerCase().trim();
+      document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+      document.querySelector("[data-cat='All']").classList.add("active");
+      _st = setTimeout(() => {
+        if (q) addSearchHistory(q); // Save search to user history
+        const list = getAllProducts();
+        renderFilteredProducts(q
+          ? list.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
+          : list
+        );
+      }, 250);
+    });
+  </script>
+</body>
+</html>
