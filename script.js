@@ -64,7 +64,7 @@ const KEYS = {
    updated register.html.
    ================================================================ */
 const EMAILJS_CONFIG = {
-  PUBLIC_KEY:  "YOUR_PUBLIC_KEY",       // ← Replace with your Public Key
+  PUBLIC_KEY:  "hiDiNzekaDSY9SJff",       // ← Replace with your Public Key
   SERVICE_ID:  "YOUR_SERVICE_ID",       // ← Replace with your Service ID
   TEMPLATE_ID: "YOUR_TEMPLATE_ID",      // ← Replace with your Template ID
 };
