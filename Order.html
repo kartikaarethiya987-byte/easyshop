@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SHOP EASY – Checkout</title>
+
+  <!-- Google Fonts & Icon library -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css"/>
+
+  <!--
+    ══════════════════════════════════════════════════════════════
+    Google Maps Places API (optional – for address autocomplete)
+    Replace YOUR_GOOGLE_MAPS_API_KEY if you have one.
+    Without it, the address field works as a plain text input.
+    ══════════════════════════════════════════════════════════════
+  -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=Function.prototype"
+    async defer>
+  </script>
+</head>
+<body>
+
+  <!-- ===== PAGE LOADER ===== -->
+  <div id="pageLoader">
+    <span class="loader-logo">SHOP<em>EASY</em></span>
+    <div class="loader-ring"></div>
+    <p class="loader-text">Preparing checkout…</p>
+  </div>
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <a class="logo" href="index.html">
+        <span class="logo-icon"><i class="fa-solid fa-bag-shopping"></i></span>
+        <span class="logo-text">SHOP<em>EASY</em></span>
+      </a>
+      <!-- Search hidden on checkout page -->
+      <div class="search-wrap" style="visibility:hidden;pointer-events:none;flex:1;">
+        <input type="text" class="search-input" placeholder=""/>
+        <button class="search-btn"></button>
+      </div>
+      <nav class="nav-links">
+        <a href="cart.html" class="nav-link">
+          <i class="fa-solid fa-arrow-left"></i> Back to Cart
+        </a>
+        <div class="nav-auth" id="navAuth"></div>
+        <a href="cart.html" class="nav-link cart-nav-btn" aria-label="Cart">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span class="cart-badge" id="cartCount">0</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== MAIN CHECKOUT PAGE ===== -->
+  <main class="op-page" id="orderPageBody">
+
+    <!-- ── BREADCRUMB ───────────────────────────────────────── -->
+    <div class="op-breadcrumb container">
+      <a href="index.html">Home</a>
+      <i class="fa-solid fa-chevron-right"></i>
+      <a href="cart.html">Cart</a>
+      <i class="fa-solid fa-chevron-right"></i>
+      <span>Checkout</span>
+    </div>
+
+    <!-- ── PAGE TITLE ───────────────────────────────────────── -->
+    <div class="op-page-header container">
+      <h1 class="op-page-title">
+        <i class="fa-solid fa-lock"></i> Secure Checkout
+      </h1>
+      <p class="op-page-sub">Review your order and provide delivery details</p>
+    </div>
+
+    <!-- ── VALIDATION ERROR BANNER ──────────────────────────── -->
+    <div class="container">
+      <div class="op-banner op-banner--error" id="opValidErr" style="display:none;"></div>
+    </div>
+
+    <!-- ── TWO-COLUMN LAYOUT ─────────────────────────────────
+         Left  → address management + delivery + payment
+         Right → cart summary + price breakdown
+    ──────────────────────────────────────────────────────────── -->
+    <div class="op-layout container">
+
+      <!-- ════════════════════════════════════════════════════
+           LEFT COLUMN
+           ════════════════════════════════════════════════════ -->
+      <div class="op-left">
+
+        <!-- ── SECTION 1: SAVED ADDRESSES ───────────────── -->
+        <section class="op-card">
+          <div class="op-card-header">
+            <h2 class="op-card-title">
+              <span class="op-step-num">1</span>
+              <i class="fa-solid fa-location-dot"></i> Delivery Address
+            </h2>
+            <!--  address count badge  -->
+            <span class="op-addr-count" id="opAddrCount">0 / 5</span>
+          </div>
+
+          <!-- Feedback banner (success / error / info) -->
+          <div class="op-banner" id="opBanner" style="display:none;"></div>
+
+          <!-- ── Saved addresses dropdown ─────────────────── -->
+          <div class="op-saved-addr-wrap" id="opSavedAddrWrap">
+            <label class="op-field-label" for="opAddrDropdown">
+              <i class="fa-solid fa-bookmark"></i> Saved Addresses
+            </label>
+            <select id="opAddrDropdown" class="op-select"
+              onchange="_coSelectedAddrId = this.value">
+              <option value="">— Select a saved address —</option>
+            </select>
+
+            <!-- Action buttons for saved addresses -->
+            <div class="op-addr-btns">
+              <!--
+                "Use Selected Address" → fills form from dropdown selection
+                Maps to spec: loadSelectedAddress()
+              -->
+              <button type="button" class="op-btn op-btn--outline"
+                onclick="loadSelectedAddress()">
+                <i class="fa-solid fa-check"></i> Use Selected
+              </button>
+
+              <!--
+                "Add New Address" → clears form so user types fresh
+                Maps to spec: clearForm()
+              -->
+              <button type="button" class="op-btn op-btn--outline"
+                onclick="clearForm()">
+                <i class="fa-solid fa-plus"></i> Add New
+              </button>
+
+              <!--
+                "Delete Selected" → removes the selected address
+                Maps to spec: deleteAddress_OP()
+              -->
+              <button type="button" class="op-btn op-btn--danger"
+                onclick="deleteAddress_OP()">
+                <i class="fa-solid fa-trash"></i> Delete
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Address form ────────────────────────────────
+               Used for BOTH adding a new address and
+               showing the pre-filled selected address.
+               All fields feed into submitOrder().
+          ──────────────────────────────────────────────────── -->
+          <div class="op-form-grid">
+
+            <!-- Company / Office Name -->
+            <div class="op-field-group">
+              <label class="op-field-label" for="opCompany">
+                <i class="fa-solid fa-building"></i>
+                Company / Office Name <span class="req">*</span>
+              </label>
+              <input type="text" id="opCompany" class="op-input"
+                placeholder="e.g. Acme Pvt. Ltd."/>
+              <span class="op-field-error" id="opCompanyErr"></span>
+            </div>
+
+            <!-- Full Name -->
+            <div class="op-field-group">
+              <label class="op-field-label" for="opFullName">
+                <i class="fa-solid fa-user"></i>
+                Full Name <span class="req">*</span>
+              </label>
+              <input type="text" id="opFullName" class="op-input"
+                placeholder="e.g. Jane Doe"/>
+              <span class="op-field-error" id="opFullNameErr"></span>
+            </div>
+
+            <!-- Delivery Address (full row) -->
+            <div class="op-field-group op-field-group--full">
+              <label class="op-field-label" for="opAddress">
+                <i class="fa-solid fa-location-dot"></i>
+                Delivery Address <span class="req">*</span>
+              </label>
+              <textarea id="opAddress" class="op-input op-textarea" rows="3"
+                placeholder="House / Flat No., Street, Area, City, State – PIN"></textarea>
+              <span class="op-field-error" id="opAddressErr"></span>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="op-field-group">
+              <label class="op-field-label" for="opPhone">
+                <i class="fa-solid fa-phone"></i>
+                Phone Number <span class="req">*</span>
+              </label>
+              <input type="tel" id="opPhone" class="op-input"
+                placeholder="10-digit mobile number"
+                maxlength="10" inputmode="numeric"
+                pattern="[6-9]{1}[0-9]{9}"/>
+              <span class="op-field-error" id="opPhoneErr"></span>
+            </div>
+
+            <!-- Save this address checkbox -->
+            <div class="op-field-group op-field-group--full">
+              <label class="op-save-chk-label" for="opSaveAddress">
+                <input type="checkbox" id="opSaveAddress" class="op-chk"
+                  aria-label="Save this address for future orders"/>
+                <span>
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  <strong>Save this address</strong>
+                  <small>for future orders (max 5 addresses)</small>
+                </span>
+              </label>
+            </div>
+
+          </div><!-- /op-form-grid -->
+        </section>
+
+
+        <!-- ── SECTION 2: DELIVERY TIME & SLOT ──────────── -->
+        <section class="op-card">
+          <div class="op-card-header">
+            <h2 class="op-card-title">
+              <span class="op-step-num">2</span>
+              <i class="fa-solid fa-clock"></i> Delivery Preferences
+            </h2>
+          </div>
+
+          <div class="op-form-grid">
+
+            <!-- Delivery Date & Time -->
+            <div class="op-field-group op-field-group--full">
+              <label class="op-field-label" for="opDeliveryTime">
+                <i class="fa-regular fa-calendar-check"></i>
+                Preferred Date &amp; Time <span class="req">*</span>
+              </label>
+              <input type="datetime-local" id="opDeliveryTime" class="op-input"/>
+
+              <!-- Live charge badge -->
+              <div class="co-charge-badge" id="opChargeBadge" style="margin-top:8px;">
+                <i class="fa-solid fa-truck-fast"></i>
+                <span id="opChargeText">Standard delivery – FREE</span>
+              </div>
+            </div>
+
+            <!-- Delivery Slot -->
+            <div class="op-field-group op-field-group--full">
+              <label class="op-field-label" for="opSlot">
+                <i class="fa-solid fa-clock"></i> Preferred Time Slot
+              </label>
+              <select id="opSlot" class="op-select">
+                <!-- Populated by _opPopulateSlots() -->
+              </select>
+            </div>
+
+            <!-- Fast Delivery checkbox -->
+            <div class="op-field-group op-field-group--full">
+              <div class="co-fast-delivery-wrap">
+                <label class="co-fast-label" for="opFastDelivery">
+                  <input type="checkbox" id="opFastDelivery" class="co-fast-check"/>
+                  <span class="co-fast-inner">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>
+                      <strong>Fast Delivery</strong>
+                      <small>Guaranteed within 12 hours (+₹100)</small>
+                    </span>
+                    <span class="co-fast-price">+₹100</span>
+                  </span>
+                </label>
+                <div class="co-fast-msg" id="opFastMsg" style="display:none;">
+                  <i class="fa-solid fa-bolt"></i>
+                  Fast delivery surcharge of <strong>₹100</strong> will be added.
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ── SECTION 3: PAYMENT METHOD ──────────────────── -->
+        <section class="op-card">
+          <div class="op-card-header">
+            <h2 class="op-card-title">
+              <span class="op-step-num">3</span>
+              <i class="fa-solid fa-credit-card"></i> Payment Method
+            </h2>
+          </div>
+
+          <div class="op-pay-grid">
+
+            <!-- UPI -->
+            <label class="op-pay-card">
+              <input type="radio" name="opPayMethod" value="UPI" class="op-pay-radio"/>
+              <span class="op-pay-inner">
+                <i class="fa-solid fa-mobile-screen-button op-pay-icon op-pay-icon--upi"></i>
+                <span class="op-pay-name">UPI</span>
+                <span class="op-pay-sub">GPay · PhonePe · Paytm · BHIM</span>
+              </span>
+            </label>
+
+            <!-- Credit / Debit Card -->
+            <label class="op-pay-card">
+              <input type="radio" name="opPayMethod" value="Card" class="op-pay-radio"/>
+              <span class="op-pay-inner">
+                <i class="fa-solid fa-credit-card op-pay-icon op-pay-icon--card"></i>
+                <span class="op-pay-name">Credit / Debit Card</span>
+                <span class="op-pay-sub">Visa · Mastercard · RuPay</span>
+              </span>
+            </label>
+
+            <!-- Cash on Delivery -->
+            <label class="op-pay-card">
+              <input type="radio" name="opPayMethod" value="Cash on Delivery" class="op-pay-radio"/>
+              <span class="op-pay-inner">
+                <i class="fa-solid fa-money-bill-wave op-pay-icon op-pay-icon--cod"></i>
+                <span class="op-pay-name">Cash on Delivery</span>
+                <span class="op-pay-sub">Pay when your order arrives</span>
+              </span>
+            </label>
+
+            <!-- Net Banking -->
+            <label class="op-pay-card">
+              <input type="radio" name="opPayMethod" value="Net Banking" class="op-pay-radio"/>
+              <span class="op-pay-inner">
+                <i class="fa-solid fa-landmark op-pay-icon op-pay-icon--nb"></i>
+                <span class="op-pay-name">Net Banking</span>
+                <span class="op-pay-sub">All major banks supported</span>
+              </span>
+            </label>
+
+          </div>
+          <span class="op-field-error" id="opPayErr" style="margin-top:8px;display:block;"></span>
+        </section>
+
+
+        <!-- ── PLACE ORDER BUTTON ─────────────────────────── -->
+        <div class="op-place-order">
+          <!--
+            submitOrder() (script.js §19):
+              1. Validates all fields
+              2. Calls saveAddress() if checkbox is checked
+              3. Confirms via window.confirm
+              4. Builds order, reduces stock, clears cart
+              5. Shows full-page success screen
+          -->
+          <button class="op-btn op-btn--place" id="opSubmitBtn"
+            onclick="submitOrder()">
+            <i class="fa-solid fa-lock"></i>
+            Place Order Securely
+          </button>
+          <p class="op-secure-note">
+            <i class="fa-solid fa-shield-halved"></i>
+            Your payment information is never stored on our servers.
+            All data stays in your browser.
+          </p>
+        </div>
+
+      </div><!-- /op-left -->
+
+
+      <!-- ════════════════════════════════════════════════════
+           RIGHT COLUMN — Cart summary & price breakdown
+           Stays sticky on desktop while user scrolls left panel
+           ════════════════════════════════════════════════════ -->
+      <div class="op-right">
+
+        <!-- Cart items list -->
+        <section class="op-card op-summary-card">
+          <div class="op-card-header">
+            <h2 class="op-card-title">
+              <i class="fa-solid fa-cart-shopping"></i> Order Summary
+            </h2>
+            <a href="cart.html" class="op-edit-cart">Edit cart</a>
+          </div>
+
+          <!--
+            Items rendered by _opRenderCartSummary() on page load.
+            Each item shows: image, name, qty × price, subtotal.
+          -->
+          <div id="opCartItems" class="op-cart-items"></div>
+        </section>
+
+        <!-- Price breakdown -->
+        <section class="op-card op-price-card">
+          <h3 class="op-price-title">Price Details</h3>
+
+          <div class="op-price-table">
+            <div class="op-price-row">
+              <span>Subtotal</span>
+              <span id="opSubtotal">₹0</span>
+            </div>
+            <div class="op-price-row op-price-row--discount">
+              <span>Discount (5%)</span>
+              <span id="opDiscount" class="op-price-green">−₹0</span>
+            </div>
+            <div class="op-price-row">
+              <span>Delivery Charge</span>
+              <span id="opDeliveryCost" class="op-price-free">FREE</span>
+            </div>
+            <div class="op-price-row op-price-row--total">
+              <span>Total Amount</span>
+              <span id="opGrandTotal">₹0</span>
+            </div>
+          </div>
+
+          <!-- Savings callout -->
+          <div class="op-savings-note">
+            <i class="fa-solid fa-tag"></i>
+            You save 5% on this order!
+          </div>
+
+          <!-- Trust badges -->
+          <div class="op-trust-badges">
+            <div class="op-trust-item">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>Secure Payment</span>
+            </div>
+            <div class="op-trust-item">
+              <i class="fa-solid fa-rotate-left"></i>
+              <span>Easy Returns</span>
+            </div>
+            <div class="op-trust-item">
+              <i class="fa-solid fa-headset"></i>
+              <span>24/7 Support</span>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- /op-right -->
+
+    </div><!-- /op-layout -->
+
+  </main><!-- /orderPageBody -->
+
+  <!-- ===== TOAST notification ===== -->
+  <div class="toast" id="toast">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toastMsg"></span>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <span class="logo-text" style="font-size:1.3rem">SHOP<em>EASY</em></span>
+        <p>Smart shopping, simplified.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Pages</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="cart.html">Cart</a></li>
+          <li><a href="orders.html">My Orders</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Account</h4>
+        <ul>
+          <li><a href="login.html">Login</a></li>
+          <li><a href="register.html">Register</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 ShopEasy. Made with <i class="fa-solid fa-heart"></i>
+        — Checkout powered by localStorage</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    /* ── Order.html initialisation ──────────────────────────── */
+
+    /*
+     * Everything is driven by renderOrderPage() which:
+     *  1. Checks login (redirects to login.html if not logged in)
+     *  2. Checks cart (shows empty state if cart is empty)
+     *  3. Renders navbar, cart summary, address dropdown
+     *  4. Pre-fills the default address (if one is saved)
+     *  5. Sets default delivery time and populates slots
+     *  6. Wires all live-update listeners
+     */
+    seedDefaultData();
+    renderOrderPage();
+    hideLoader();
+  </script>
+</body>
+</html>
