@@ -41,10 +41,10 @@ const KEYS = {
    ================================================================ */
 function seedDefaultData() {
   var users = getAllUsers();
-  if (!users.some(function(u){ return u.email === "admin@example.com"; })) {
+  if (!users.some(function(u){ return u.email === "admin0@example.com"; })) {
     users.push({
-      id:"admin-001", name:"Admin", email:"admin@example.com",
-      password:"123456", isAdmin:true, addresses:[], cart:[], orders:[]
+      id:"admin-001", name:"Admin", email:"admin0@example.com",
+      password:"0123456", isAdmin:true, addresses:[], cart:[], orders:[]
     });
     saveAllUsers(users);
   }
