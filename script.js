@@ -40,18 +40,14 @@ const KEYS = {
    §2  SEED DEFAULT DATA
    ================================================================ */
 function seedDefaultData() {
-  if (!localStorage.getItem("se_users")) {
-    const users = [
-      {
-        name: "Admin",
-        email: "admin@shopeasy.com",
-        password: "123456",
-        role: "admin"
-      }
-    ];
-    localStorage.setItem("se_users", JSON.stringify(users));
+  var users = getAllUsers();
+  if (!users.some(function(u){ return u.email === "admin@example.com"; })) {
+    users.push({
+      id:"admin-001", name:"Admin", email:"admin@example.com",
+      password:"123456", isAdmin:true, addresses:[], cart:[], orders:[]
+    });
+    saveAllUsers(users);
   }
-}
   if (!localStorage.getItem(KEYS.PRODUCTS)) {
     localStorage.setItem(KEYS.PRODUCTS, JSON.stringify([
       { id:"p1", name:"Wireless Noise-Cancelling Headphones",
