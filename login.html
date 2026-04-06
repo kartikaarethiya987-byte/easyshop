@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SHOP EASY – Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* Reset-data hint strip */
+    .reset-data-hint {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: rgba(234,179,8,.08);
+      border: 1px solid rgba(234,179,8,.3);
+      border-radius: var(--radius-sm, 10px);
+      padding: 10px 14px;
+      font-size: .8rem;
+      color: #92400e;
+      margin-bottom: 12px;
+      animation: fadeUp .3s ease;
+    }
+    .reset-data-hint i { flex-shrink: 0; margin-top: 2px; color: #b45309; }
+    .reset-data-btn {
+      background: none;
+      border: none;
+      color: var(--clr-red, #ef4444);
+      font-weight: 700;
+      font-family: inherit;
+      font-size: .8rem;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+    }
+    .reset-data-btn:hover { color: #b91c1c; }
+  </style>
+</head>
+<body class="auth-body">
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <a class="logo" href="index.html">
+        <span class="logo-icon"><i class="fa-solid fa-bag-shopping"></i></span>
+        <span class="logo-text">SHOP<em>EASY</em></span>
+      </a>
+      <div class="search-wrap" style="visibility:hidden;pointer-events:none;flex:1;">
+        <input type="text" class="search-input" placeholder=""/>
+        <button class="search-btn"></button>
+      </div>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="cart.html" class="nav-link cart-nav-btn" aria-label="Cart">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span class="cart-badge" id="cartCount">0</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== LOGIN CARD ===== -->
+  <main class="auth-page">
+    <div class="auth-card">
+
+      <div class="auth-card-header">
+        <div class="auth-icon"><i class="fa-solid fa-right-to-bracket"></i></div>
+        <h1 class="auth-title">Welcome back</h1>
+        <p class="auth-sub">Sign in to your ShopEasy account</p>
+      </div>
+
+      <!--
+        Admin hint – text filled by JS so email is never obfuscated
+        by Cloudflare or any proxy, which was breaking the display.
+      -->
+      <div class="admin-hint">
+        <i class="fa-solid fa-shield-halved"></i>
+        <div id="adminHintText"></div>
+      </div>
+
+      <!-- Message box (error / success) -->
+      <div class="auth-message" id="authMessage" style="display:none;"></div>
+
+      <!--
+        Reset hint – shown after 2 failed login attempts.
+        Lets user wipe stale localStorage from old site versions.
+      -->
+      <div class="reset-data-hint" id="resetHint" style="display:none;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>
+          Still can't log in?
+          <button class="reset-data-btn" id="resetDataBtn">
+            Reset all site data
+          </button>
+          — this clears old saved data and recreates defaults.
+        </span>
+      </div>
+
+      <form class="auth-form" id="loginForm" novalidate>
+
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">
+            <i class="fa-solid fa-envelope"></i> Email Address
+          </label>
+          <input type="email" id="loginEmail" class="form-input"
+            placeholder="you@example.com" autocomplete="email" required/>
+          <span class="field-error" id="emailError"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="loginPassword">
+            <i class="fa-solid fa-lock"></i> Password
+          </label>
+          <div class="input-password-wrap">
+            <input type="password" id="loginPassword" class="form-input"
+              placeholder="Enter your password"
+              autocomplete="current-password" required/>
+            <button type="button" class="toggle-pw" id="togglePw"
+              aria-label="Show or hide password">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <span class="field-error" id="passwordError"></span>
+        </div>
+
+        <button type="submit" class="auth-btn" id="loginBtn">
+          <span class="btn-text">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In
+          </span>
+          <span class="btn-spinner" style="display:none;">
+            <i class="fa-solid fa-spinner fa-spin"></i> Signing in…
+          </span>
+        </button>
+
+      </form>
+
+      <div class="auth-divider"><span>or</span></div>
+
+      <p class="auth-switch">
+        Don't have an account?
+        <a href="register.html" class="auth-switch-link">
+          Create one free <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </p>
+
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <span class="logo-text" style="font-size:1.3rem">SHOP<em>EASY</em></span>
+        <p>Smart shopping, simplified.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Pages</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="register.html">Register</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 ShopEasy. Made with <i class="fa-solid fa-heart"></i></p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    /* ============================================================
+       login.html — init
+       ============================================================ */
+
+    /*
+     * Always run seedDefaultData() first.
+     * It now also REPAIRS the admin user if its isAdmin flag
+     * was missing or false (e.g. from an old version of the site).
+     */
+    seedDefaultData();
+    updateCartBadge();
+
+    /*
+     * Build admin credentials hint using JS so that Cloudflare
+     * email obfuscation (data-cfemail) cannot corrupt the email.
+     */
+    var _ae = "admin" + "@" + "example.com";
+    var _ap = "123456";
+    document.getElementById("adminHintText").innerHTML =
+      "<strong>Admin login:</strong> " + _ae + " &nbsp;/&nbsp; " + _ap +
+      "<br><small style='opacity:.7'>Admin is always redirected to admin.html after login.</small>";
+
+    /* If already logged in, skip this page */
+    if (isLoggedIn()) {
+      window.location.href = isAdmin() ? "admin.html" : "index.html";
+    }
+
+    /* ── Password show/hide ──────────────────────────────────── */
+    document.getElementById("togglePw").addEventListener("click", function () {
+      var pw   = document.getElementById("loginPassword");
+      var icon = this.querySelector("i");
+      if (pw.type === "password") {
+        pw.type = "text";
+        icon.classList.replace("fa-eye", "fa-eye-slash");
+      } else {
+        pw.type = "password";
+        icon.classList.replace("fa-eye-slash", "fa-eye");
+      }
+    });
+
+    /* ── Reset site data ─────────────────────────────────────── */
+    document.getElementById("resetDataBtn").addEventListener("click", function () {
+      if (!confirm(
+        "This will erase all saved accounts, products and orders from " +
+        "your browser's localStorage.\n\n" +
+        "The default admin account (admin@example.com / 123456) and " +
+        "sample products will be recreated automatically.\n\n" +
+        "Continue?"
+      )) return;
+
+      /* Wipe every ShopEasy localStorage key */
+      var keys = ["se_users","se_session","se_products","se_orders",
+                  "se_redirect","se_access_denied"];
+      keys.forEach(function(k){ localStorage.removeItem(k); });
+
+      /* Recreate defaults immediately */
+      seedDefaultData();
+
+      /* Pre-fill admin credentials for convenience */
+      document.getElementById("loginEmail").value    = _ae;
+      document.getElementById("loginPassword").value = _ap;
+      document.getElementById("resetHint").style.display = "none";
+
+      showMsgBox("success",
+        '<i class="fa-solid fa-circle-check"></i> ' +
+        "Data reset! Admin credentials are pre-filled — click Sign In."
+      );
+    });
+
+    /* ── Login form submit ───────────────────────────────────── */
+    var _failCount = 0;
+
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      var email    = document.getElementById("loginEmail").value.trim();
+      var password = document.getElementById("loginPassword").value;
+
+      clearAllErrors(["emailError","passwordError"]);
+      hideMsgBox();
+
+      var valid = true;
+      if (!email) {
+        setFieldError("loginEmail","emailError","Please enter your email address.");
+        valid = false;
+      } else if (!isValidEmail(email)) {
+        setFieldError("loginEmail","emailError","Please enter a valid email address.");
+        valid = false;
+      }
+      if (!password) {
+        setFieldError("loginPassword","passwordError","Please enter your password.");
+        valid = false;
+      }
+      if (!valid) return;
+
+      /* Show spinner */
+      document.querySelector("#loginBtn .btn-text").style.display    = "none";
+      document.querySelector("#loginBtn .btn-spinner").style.display = "inline";
+      document.getElementById("loginBtn").disabled = true;
+
+      setTimeout(function () {
+        /*
+         * loginAndRedirect() (script.js §3):
+         *   SUCCESS – admin → admin.html, user → saved page or index.html
+         *             Browser navigates; nothing below this runs.
+         *   FAILURE – returns { success:false, message }
+         */
+        var result = loginAndRedirect(email, password);
+
+        /* SUCCESS: navigation is in progress, keep spinner */
+        if (result && result.success) return;
+
+        /* FAILURE: restore button, show error */
+        document.querySelector("#loginBtn .btn-text").style.display    = "inline";
+        document.querySelector("#loginBtn .btn-spinner").style.display = "none";
+        document.getElementById("loginBtn").disabled = false;
+
+        var errMsg = (result && result.message)
+          ? result.message
+          : "Login failed. Please check your credentials.";
+
+        showMsgBox("error",
+          '<i class="fa-solid fa-circle-xmark"></i> ' + errMsg
+        );
+        setFieldError("loginPassword","passwordError","Check your email and password.");
+
+        /* After 2 failures, reveal the "Reset site data" option */
+        _failCount++;
+        if (_failCount >= 2) {
+          document.getElementById("resetHint").style.display = "flex";
+        }
+      }, 500);
+    });
+
+    /* ── Helpers ─────────────────────────────────────────────── */
+    function showMsgBox(type, html) {
+      var box       = document.getElementById("authMessage");
+      box.className = "auth-message auth-message--" + type;
+      box.innerHTML = html;
+      box.style.display = "flex";
+    }
+    function hideMsgBox() {
+      var box = document.getElementById("authMessage");
+      if (box) box.style.display = "none";
+    }
+  </script>
+</body>
+</html>
